@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Положение планет Солнечной системы</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 20px;
+            background: black;
+            color: #eee;
+        }
+        h1 {
+            color: #e94560;
+            text-align: center;
+        }
+        .nav {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+        .nav a {
+            color: #a0a0b0;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+        .nav a:hover {
+            color: #e94560;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #a0a0b0;
+        }
+        select, input {
+        width: 100%;
+        height: 44px;
+        padding: 10px 12px;
+        border: 1px solid #333;
+        border-radius: 5px;
+        background: #16213e;
+        color: #eee;
+        font-size: 16px;
+        box-sizing: border-box;
+        }
+        button {
+            background: #e94560;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background: #c73652;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #16213e;
+            border-radius: 10px;
+        }
+        .result h3 {
+            color: #e94560;
+            margin-top: 0;
+            text-align: center;
+        }
+        .coord {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+        }
+        .coord div {
+            text-align: center;
+        }
+        .coord span {
+            display: block;
+            font-size: 28px;
+            font-weight: bold;
+            color: #f5f5f5;
+        }
+        .coord small {
+            color: #888;
+        }
+        .error {
+            color: #ff6b6b;
+            background: #2d1111;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .distance {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 10px;
+            color: #a0a0b0;
+        }
+        .planet-image {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .planet-image img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(255,255,255,0.4), 0 0 60px rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="/planets/online">Онлайн-карта</a>
+</div>
+
+<h1>Положение планет</h1>
+
+<form method="post" th:action="@{/planets}">
+    <div class="form-group">
+        <label>Выберите планету:</label>
+        <select name="planetId" required>
+            <option value="">-- Выберите планету --</option>
+            <option th:each="planet : ${planets}"
+                    th:value="${planet.id}"
+                    th:text="${planet.name}">
+            </option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Дата и время:</label>
+        <input type="datetime-local" name="dateTime"
+               th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd') + 'T12:00'}"
+               required>
+    </div>
+
+    <button type="submit">Рассчитать положение</button>
+</form>
+
+<div th:if="${error}" class="error" style="margin-top: 20px;">
+    <strong>Ошибка:</strong> <span th:text="${error}"></span>
+</div>
+
+<div th:if="${calculation != null}" class="result">
+    <h3 th:text="'Планета: ' + ${calculation.planet.name}"></h3>
+    <p style="text-align: center; color: #a0a0b0;">
+        Дата расчёта:
+        <span th:text="${#temporals.format(calculation.calculationDate, 'dd.MM.yyyy HH:mm')}"></span>
+    </p>
+
+    <div class="coord">
+        <div>
+            <small>X (а.е.)</small>
+            <span th:text="${#numbers.formatDecimal(calculation.xCoordinate, 2, 4)}"></span>
+        </div>
+        <div>
+            <small>Y (а.е.)</small>
+            <span th:text="${#numbers.formatDecimal(calculation.yCoordinate, 2, 4)}"></span>
+        </div>
+        <div>
+            <small>Z (а.е.)</small>
+            <span th:text="${#numbers.formatDecimal(calculation.zCoordinate, 2, 4)}"></span>
+        </div>
+    </div>
+
+    <div class="distance">
+        Расстояние от Солнца:
+        <strong th:text="${#numbers.formatDecimal(distance, 2, 4)}"></strong> а.е.
+    </div>
+
+    <div class="planet-image">
+        <img th:src="@{'/images/planets/' + ${calculation.planet.name} + '.jpg'}"
+             th:alt="${calculation.planet.name}">
+    </div>
+</div>
+
+</body>
+</html>
